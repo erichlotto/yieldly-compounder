@@ -27,4 +27,5 @@ I personally like to keep this on a server as I dont have my computer powered on
 5. Your script should now be setup for daily running everyday at 4:50 localtime (my machine is in UTC so 4:50 is the optimal time for me)
 
 ### Considerations:
-I'm telling you to import your existing seed phrase instead of creating a whole new wallet, because you have to opt-in in Yieldly's contracts, and the script is not ready for this.
+- I'm telling you to import your existing seed phrase instead of creating a whole new wallet, because you have to opt-in in Yieldly's contracts, and the script is not ready for this.
+- The script takes some time to execute (~2min), as we have some timeouts to make sure the transactions on the Algorand network are successfully
