@@ -4,6 +4,8 @@ Script to claim rewards from Yieldly's No Loss Lottery and Staking Pool and addi
 Please bear in mind this is a proof of concept created for personal usage and released so the comunity can benefit from it. It fills my personal needs until Yieldly implements auto-compounding with TEAL4 in Q4.
 
 ## Usage:
+DISCLAIMER: this can be potentially unsafe as we're relying on HTML scrapping of labels and class names in the webpage, if the team at Yieldly or MyAlgoWallet decides to change these attributes, unwanted actions might be triggered and the script will need to be updated (in this scenario probably the script will just crash, but since we're interacting with our Algorand wallet there *could* be a shit storm, use it at your own risk).
+
 This is a Node.js project and relies on Puppeteer (a library to interact with a browser session programatically), so we're basically simulating user inputs here as if we were using the browser to claim our rewards from Yieldly. Tested on Ubuntu only, I can't tell if it'll work on another OS.
 
 There's some manual work involved, so let's get to it:
