@@ -25,7 +25,7 @@ I personally like to keep this on a server as I dont have my computer powered on
 1. Upload the entire `yieldly-compounder` directory to your server
 2. On your server, run `node index.js`
 3. I had to install a lot of dependencies on Ubuntu server to get puppeteer working, you might have to aswell. [This issue page helped me]( https://github.com/puppeteer/puppeteer/issues/3443) (I've installed everything listed in the last message including `libgbm-dev`)
-4. Once you confirm everything is working as intended, create a new contab entry running `crontab -e` and schedule this script's execution with `50 4 * * * /usr/bin/node /home/ubuntu/yieldly-compounder/index.js` (please check your node binary location as it might vary)
+4. Once you confirm everything is working as intended, create a new contab entry running `crontab -e` and schedule this script's execution with `50 4 * * * cd /home/user/path/to/yieldly-compounder && /usr/bin/node /home/ubuntu/yieldly-compounder/index.js` (please check your node binary location as it might vary)
 5. Your script should now be setup for daily running everyday at 4:50 localtime (my machine is in UTC so 4:50 is the optimal time for me)
 
 ### Considerations:
