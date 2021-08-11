@@ -4,6 +4,8 @@ Script to claim rewards from Yieldly's No Loss Lottery and Staking Pool and addi
 Please bear in mind this is a proof of concept created for personal usage and released so the comunity can benefit from it. It fills my personal needs until Yieldly implements auto-compounding with TEAL4 in Q4.
 
 ## Usage:
+DISCLAIMER: this can be potentially unsafe as we're relying on HTML scrapping of labels and class names in the webpage, if the team at Yieldly or MyAlgoWallet decides to change these attributes, unwanted actions might be triggered and the script will need to be updated (in this scenario probably the script will just crash, but since we're interacting with our Algorand wallet there *could* be a shit storm, use it at your own risk).
+
 This is a Node.js project and relies on Puppeteer (a library to interact with a browser session programatically), so we're basically simulating user inputs here as if we were using the browser to claim our rewards from Yieldly. Tested on Ubuntu only, I can't tell if it'll work on another OS.
 
 There's some manual work involved, so let's get to it:
@@ -23,8 +25,9 @@ I personally like to keep this on a server as I dont have my computer powered on
 1. Upload the entire `yieldly-compounder` directory to your server
 2. On your server, run `node index.js`
 3. I had to install a lot of dependencies on Ubuntu server to get puppeteer working, you might have to aswell. [This issue page helped me]( https://github.com/puppeteer/puppeteer/issues/3443) (I've installed everything listed in the last message including `libgbm-dev`)
-4. Once you confirm everything is working as intended, create a new contab entry running `crontab -e` and schedule this script's execution with `50 4 * * * /usr/bin/node /home/ubuntu/yieldly-compounder/index.js` (please check your node binary location as it might vary)
+4. Once you confirm everything is working as intended, create a new contab entry running `crontab -e` and schedule this script's execution with `50 4 * * * cd /home/user/path/to/yieldly-compounder && /usr/bin/node /home/ubuntu/yieldly-compounder/index.js` (please check your node binary location as it might vary)
 5. Your script should now be setup for daily running everyday at 4:50 localtime (my machine is in UTC so 4:50 is the optimal time for me)
 
 ### Considerations:
-I'm telling you to import your existing seed phrase instead of creating a whole new wallet, because you have to opt-in in Yieldly's contracts, and the script is not ready for this.
+- I'm telling you to import your existing seed phrase instead of creating a whole new wallet, because you have to opt-in in Yieldly's contracts, and the script is not ready for this.
+- The script takes some time to execute (~2min), as we have some timeouts to make sure the transactions on the Algorand network are successfully
