@@ -240,7 +240,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 (async () => {
     for (let i = 0; i < 10; i++) { // TRY TO RUN THE SCRIPT 10 TIMES TO BYPASS POSSIBLE NETWORK ERRORS
         try {
-            console.log(`YIELDLY AUTO COMPOUNDER v1.0.1${DEBUG ? " (DEBUG)" : ""}`)
+            console.log(`YIELDLY AUTO COMPOUNDER v1.0.1${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
 
             // CHECK IF MYALGO WALLET IS CREATED
             await checkAlgoWallet();
