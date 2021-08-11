@@ -11,9 +11,7 @@
   "dependencies": {
     "puppeteer": "^10.1.0"
   },
-  { 
-    "engines": { 
-      "node": ">=16" 
-    }
+  "engines": {
+    "node": ">=16"
   }
 }
