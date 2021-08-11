@@ -1,16 +1,23 @@
 const puppeteer = require("puppeteer");
 const readline = require("readline");
+const settings = require("./settings");
 
-const MYALGO_PASSWORD = "pa55word"; // MyAlgoWallet policy: At least one number. At least one character. Minimum length is 8.
-const puppeteerSettings = {
-    headless: true, // HIDE (true) OR DISPLAY (false) THE BROWSER WINDOW
+////////////////////////////////////////////
+//                                        //
+//  NO NEED TO EDIT THIS SCRIPT ANYMORE,  //
+//  PLEASE CHECK settings.js              //
+//                                        //
+////////////////////////////////////////////
+
+const MYALGO_PASSWORD = settings.password;
+const DEBUG = settings.debug;
+const PUPPETEER_SETTINGS = {
+    headless: settings.headless,
     userDataDir: "./user_data"
-}
-
-
-/* DONT EDIT ANYTHING BELOW (but also feel free to mess around :)) */
-
+};
 const ENTER = String.fromCharCode(13);
+const ESC = String.fromCharCode(27);
+
 let browser;
 
 // PRINTS TERMINAL STUFF WAITING FOR USER INPUT
@@ -31,7 +38,7 @@ function terminalPrompt(query) {
 
 // CHECK IF MYALGO ACCOUNT IS CREATED
 const checkAlgoWallet = async () => {
-    browser = await puppeteer.launch(puppeteerSettings);
+    browser = await puppeteer.launch(PUPPETEER_SETTINGS);
     const page = (await browser.pages())[0];
     await page.goto('https://wallet.myalgo.com/');
     await page.waitForSelector('input.input-password, div.home-image-1');
@@ -54,8 +61,6 @@ const connectAlgoWallet = async browser => {
     let pages = await browser.pages();
     const yieldlyPage = pages[0];
 
-    const myAlgoOpened = () => new Promise(res => browser.on('targetcreated', res)) // WAITS UNTIL MYALGOWALLET POPUP IS LOADED
-
     await yieldlyPage.waitForTimeout(5000);
     const [connectBtn] = await yieldlyPage.$x("//button[contains(., 'Connect Wallet')]");
     await connectBtn.click();
@@ -75,13 +80,13 @@ const connectAlgoWallet = async browser => {
     } catch (e) { }
 }
 
+
 // CLAIM NLL REWARDS
 const claimNLLRewards = async () => {
-    browser = await puppeteer.launch(puppeteerSettings);
+    browser = await puppeteer.launch(PUPPETEER_SETTINGS);
     let pages = await browser.pages();
     const yieldlyPage = pages[0];
 
-    const myAlgoOpened = () => new Promise(res => browser.on('targetcreated', res))
     await yieldlyPage.goto('https://app.yieldly.finance/prize-games');
 
     await connectAlgoWallet(browser);
@@ -110,7 +115,7 @@ const claimNLLRewards = async () => {
     myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
     await myAlgoPage.waitForSelector('.custom-btn');
     await myAlgoPage.click('.custom-btn')
-    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, ENTER]);
+    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
 
     await yieldlyPage.waitForTimeout(30000);
 
@@ -121,11 +126,10 @@ const claimNLLRewards = async () => {
 
 // CLAIM STAKING POOL REWARDS
 const claimPoolRewards = async () => {
-    browser = await puppeteer.launch(puppeteerSettings);
+    browser = await puppeteer.launch(PUPPETEER_SETTINGS);
     let pages = await browser.pages();
     const yieldlyPage = pages[0];
 
-    const myAlgoOpened = () => new Promise(res => browser.on('targetcreated', res))
     await yieldlyPage.goto('https://app.yieldly.finance/staking');
 
     await connectAlgoWallet(browser);
@@ -150,12 +154,13 @@ const claimPoolRewards = async () => {
     await nextBtn.click();
 
     await myAlgoOpened();
+    await yieldlyPage.waitForTimeout(3000);
 
     pages = await browser.pages();
     myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
     await myAlgoPage.waitForSelector('.custom-btn');
     await myAlgoPage.click('.custom-btn')
-    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, ENTER]);
+    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
 
     await yieldlyPage.waitForTimeout(30000);
 
@@ -166,12 +171,11 @@ const claimPoolRewards = async () => {
 
 // STAKE AVAILABLE BALANCE
 const stakeYLDY = async () => {
-    browser = await puppeteer.launch(puppeteerSettings);
+    browser = await puppeteer.launch(PUPPETEER_SETTINGS);
     let pages = await browser.pages();
 
     const yieldlyPage = pages[0];
 
-    const myAlgoOpened = () => new Promise(res => browser.on('targetcreated', res))
     await yieldlyPage.goto('https://app.yieldly.finance/staking');
 
     await connectAlgoWallet(browser);
@@ -201,12 +205,13 @@ const stakeYLDY = async () => {
     });
 
     await myAlgoOpened();
+    await yieldlyPage.waitForTimeout(3000);
 
     pages = await browser.pages();
     myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
     await myAlgoPage.waitForSelector('.custom-btn');
     await myAlgoPage.click('.custom-btn')
-    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, ENTER]);
+    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
 
     await yieldlyPage.waitForTimeout(30000);
 
@@ -214,10 +219,28 @@ const stakeYLDY = async () => {
     return stakedYLDY
 }
 
+
+// WAITS FOR MYALGO OPENED, TIMEOUT IS 30 SECONDS (60*500)
+const myAlgoOpened = async () => {
+    for (let i = 0; i < 60; i++) {
+        let pages = await browser.pages();
+        let myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
+        if (myAlgoPage != undefined) return;
+        await sleep(500)
+    }
+    throw "MyAlgoWallet not oppenened. Check your connection"
+}
+
+
+// PAUSE EXECUTION FOR THE SPECIFIED AMOUNT OF TIME
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+
+// RUNS THIS SCRIPT
 (async () => {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) { // TRY TO RUN THE SCRIPT 10 TIMES TO BYPASS POSSIBLE NETWORK ERRORS
         try {
-            console.log("YIELDLY AUTO COMPOUNDER v1.0.0")
+            console.log(`YIELDLY AUTO COMPOUNDER v1.0.1${DEBUG ? " (DEBUG)" : ""}`)
 
             // CHECK IF MYALGO WALLET IS CREATED
             await checkAlgoWallet();
@@ -237,7 +260,7 @@ const stakeYLDY = async () => {
             break;
         } catch (e) {
             await browser.close();
-            console.log(`AN ERROR OCCURRED, TRYING AGAIN...\n`)
+            console.log(`ERROR: ${e}\n`)
         }
     }
 
