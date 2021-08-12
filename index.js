@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const readline = require("readline");
 const settings = require("./settings");
+const axios = require('axios');
 
 ////////////////////////////////////////////
 //                                        //
@@ -236,31 +237,39 @@ const myAlgoOpened = async () => {
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
+// LOGS OUTPUT TO CONSOLE AND (OPTIONALLY) TO TELEGRAM, IF VARIABLES ARE PRESENT IN SETTINGS.JS
+const log = message => {
+    console.log(message);
+    settings.telegram_api && settings.telegram_chatid &&
+        axios.get(`https://api.telegram.org/bot${settings.telegram_api}/sendmessage?chat_id=${settings.telegram_chatid}&disable_web_page_preview=1&disable_notification=true&text=${encodeURI(message)}`);
+}
+
+
 // RUNS THIS SCRIPT
 (async () => {
     for (let i = 0; i < 10; i++) { // TRY TO RUN THE SCRIPT 10 TIMES TO BYPASS POSSIBLE NETWORK ERRORS
         try {
-            console.log(`YIELDLY AUTO COMPOUNDER v1.0.1${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
+            log(`YIELDLY AUTO COMPOUNDER v1.0.1${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
 
             // CHECK IF MYALGO WALLET IS CREATED
             await checkAlgoWallet();
 
             // CLAIM NLL REWARDS
             const claimedNLLRewards = await claimNLLRewards();
-            console.log(`Claimed NLL Assets: ${claimedNLLRewards} YLDY`)
+            log(`Claimed NLL Assets: ${claimedNLLRewards} YLDY`)
 
             // CLAIM POOL REWARDS
             const claimedPoolRewards = await claimPoolRewards();
-            console.log(`Claimed Pool Assets: ${claimedPoolRewards[0]} ALGO | ${claimedPoolRewards[1]} YLDY`)
+            log(`Claimed Pool Assets: ${claimedPoolRewards[0]} ALGO | ${claimedPoolRewards[1]} YLDY`)
 
             // STAKE EVERY YLDY IN WALLET
             const stakedAmount = await stakeYLDY();
-            console.log(`Staked Amount: ${stakedAmount} YLDY`);
+            log(`Staked Amount: ${stakedAmount} YLDY`);
 
             break;
         } catch (e) {
             await browser.close();
-            console.log(`ERROR: ${e}\n`)
+            log(`ERROR: ${e}\n`)
         }
     }
 
