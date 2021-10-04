@@ -66,6 +66,10 @@ const connectAlgoWallet = async browser => {
     const [connectBtn] = await yieldlyPage.$x("//button[contains(., 'Connect Wallet')]");
     await connectBtn.click();
 
+    await yieldlyPage.waitForTimeout(1000);
+    const [walletBtn] = await yieldlyPage.$x("//button[contains(., 'My ALGO Wallet')]");
+    await walletBtn.click();
+
     await myAlgoOpened();
 
     pages = await browser.pages();
@@ -112,11 +116,8 @@ const claimNLLRewards = async () => {
 
     await myAlgoOpened();
 
-    pages = await browser.pages();
-    myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
-    await myAlgoPage.waitForSelector('.custom-btn');
-    await myAlgoPage.click('.custom-btn')
-    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
+
+    await signAlgoTransactions();
 
     await yieldlyPage.waitForTimeout(30000);
 
@@ -124,29 +125,32 @@ const claimNLLRewards = async () => {
     return claimAmountYLDY
 }
 
-
 // CLAIM STAKING POOL REWARDS
 const claimPoolRewards = async () => {
     browser = await puppeteer.launch(PUPPETEER_SETTINGS);
     let pages = await browser.pages();
     const yieldlyPage = pages[0];
 
-    await yieldlyPage.goto('https://app.yieldly.finance/staking');
+    await yieldlyPage.goto('https://app.yieldly.finance/pools');
 
     await connectAlgoWallet(browser);
 
     await yieldlyPage.waitForTimeout(5000);
+    const [algoP] = await yieldlyPage.$x("//p[text() = 'ALGO']");
+    await algoP.click();
+
+    await yieldlyPage.waitForTimeout(1000);
 
     const [claimBtn] = await yieldlyPage.$x("//button[text() = 'Claim']");
     await claimBtn.click();
 
     await yieldlyPage.waitForTimeout(2000);
 
-    const [claimAmountALGO, claimAmountYLDY] = await yieldlyPage.$$eval('input[type=number]', inputs => inputs.map((input) => parseFloat(input.value)))
+    const claimAmounts = await yieldlyPage.$$eval('input[type=number]', inputs => inputs.map((input) => parseFloat(input.value)))
 
-    if (claimAmountALGO == 0 && claimAmountYLDY == 0) {
+    if (claimAmounts[0] == 0 && claimAmounts[1] == 0) {
         await browser.close();
-        return [claimAmountALGO, claimAmountYLDY];
+        return claimAmounts;
     }
 
     await yieldlyPage.waitForTimeout(2000);
@@ -155,18 +159,13 @@ const claimPoolRewards = async () => {
     await nextBtn.click();
 
     await myAlgoOpened();
-    await yieldlyPage.waitForTimeout(3000);
 
-    pages = await browser.pages();
-    myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
-    await myAlgoPage.waitForSelector('.custom-btn');
-    await myAlgoPage.click('.custom-btn')
-    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
+    await signAlgoTransactions();
 
     await yieldlyPage.waitForTimeout(30000);
 
     await browser.close();
-    return [claimAmountALGO, claimAmountYLDY]
+    return [Math.min(...claimAmounts), Math.max(...claimAmounts)]
 }
 
 
@@ -177,11 +176,16 @@ const stakeYLDY = async () => {
 
     const yieldlyPage = pages[0];
 
-    await yieldlyPage.goto('https://app.yieldly.finance/staking');
+    await yieldlyPage.goto('https://app.yieldly.finance/pools');
 
     await connectAlgoWallet(browser);
 
     await yieldlyPage.waitForTimeout(5000);
+
+    const [algoP] = await yieldlyPage.$x("//p[text() = 'ALGO']");
+    await algoP.click();
+
+    await yieldlyPage.waitForTimeout(1000);
 
     await yieldlyPage.evaluate(() => {
         [...document.querySelectorAll('button')].find(element => element.textContent === 'Stake').click();
@@ -206,18 +210,23 @@ const stakeYLDY = async () => {
     });
 
     await myAlgoOpened();
-    await yieldlyPage.waitForTimeout(3000);
 
-    pages = await browser.pages();
-    myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
-    await myAlgoPage.waitForSelector('.custom-btn');
-    await myAlgoPage.click('.custom-btn')
-    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
+    await signAlgoTransactions();
 
     await yieldlyPage.waitForTimeout(30000);
 
     await browser.close();
     return stakedYLDY
+}
+
+
+// SIGNS TRANSACTIONS
+const signAlgoTransactions = async () => {
+    const pages = await browser.pages();
+    const myAlgoPage = pages.find(page => page.url().indexOf("wallet.myalgo.com") > -1)
+    await myAlgoPage.waitForSelector('.custom-btn');
+    await myAlgoPage.click('.custom-btn')
+    await myAlgoPage.type('input.input-password', [MYALGO_PASSWORD, DEBUG ? ESC : ENTER]);
 }
 
 
@@ -229,7 +238,7 @@ const myAlgoOpened = async () => {
         if (myAlgoPage != undefined) return;
         await sleep(500)
     }
-    throw "MyAlgoWallet not oppenened. Check your connection"
+    throw "MyAlgoWallet not opened. Check your connection"
 }
 
 
@@ -249,7 +258,7 @@ const log = message => {
 (async () => {
     for (let i = 0; i < 10; i++) { // TRY TO RUN THE SCRIPT 10 TIMES TO BYPASS POSSIBLE NETWORK ERRORS
         try {
-            log(`YIELDLY AUTO COMPOUNDER v1.0.1${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
+            log(`YIELDLY AUTO COMPOUNDER v1.1.0${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
 
             // CHECK IF MYALGO WALLET IS CREATED
             await checkAlgoWallet();
