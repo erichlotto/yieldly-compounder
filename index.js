@@ -331,8 +331,8 @@ const log = message => {
             log(`Staked Amount: ${stakedAmount} YLDY`);
 
             // ENTER NFT GAME - NOT 100% TESTED SO COMMENTED OUT. USE AT YOUR WON RISK
-            await subscribeToNFTs();
-            log(`Number of NFTs Subscribed: ${newNFTsSubscribed}`);
+            // await subscribeToNFTs();
+            // log(`Number of NFTs Subscribed: ${newNFTsSubscribed}`);
 
             break;
         } catch (e) {
