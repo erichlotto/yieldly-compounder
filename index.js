@@ -220,6 +220,61 @@ const stakeYLDY = async () => {
 }
 
 
+// NFT GAME SUBSCRIPTION
+let newNFTsSubscribed = 0;
+const subscribeToNFTs = async () => {
+    browser = await puppeteer.launch(PUPPETEER_SETTINGS);
+    let pages = await browser.pages();
+
+    const yieldlyPage = pages[0];
+
+    await yieldlyPage.goto('https://app.yieldly.finance/nft');
+
+    await connectAlgoWallet(browser);
+
+    // Wait for "Get Tickets" buttons to disappear if user is already subscribed to the respective NFT
+    await yieldlyPage.waitForTimeout(30000);
+
+
+    const availableNFTS = await yieldlyPage.$$("div.MuiLinearProgress-root");
+    for (let nft of availableNFTS) {
+        await nft.click();
+        await yieldlyPage.waitForTimeout(1000);
+    }
+
+    // We need to limit the number of subscriptions per script execution because the button "Get Tickets"
+    // takes a while to disappear after page load, so we end subscribing to the same NFT multiple times
+    // (yeah, that might happen not sure if winning chances increase though) and burn all our ALGOS in fees.
+    // The script should wait 30 seconds after page load to make sure things are in order, this is just another
+    // safety mechanism :)
+    const MAX_SUBSCRIPTIONS_PER_RUN = 5;
+
+    const [ticketBTN] = await yieldlyPage.$x("//button[contains(., 'Get Tickets')]");
+    if (!ticketBTN || newNFTsSubscribed >= MAX_SUBSCRIPTIONS_PER_RUN) {
+        await browser.close();
+        return;
+    }
+
+    log(`Subscribing to NFT #${newNFTsSubscribed+1}...`)
+
+    ticketBTN.click();
+    await yieldlyPage.waitForTimeout(1000);
+    const [nextBtn] = await yieldlyPage.$x("//button[text() = 'Next']");
+    await nextBtn.click();
+
+    await myAlgoOpened();
+
+    await signAlgoTransactions();
+
+    await yieldlyPage.waitForTimeout(30000);
+    newNFTsSubscribed++;
+
+    await browser.close();
+
+    await subscribeToNFTs();
+}
+
+
 // SIGNS TRANSACTIONS
 const signAlgoTransactions = async () => {
     const pages = await browser.pages();
@@ -250,7 +305,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const log = message => {
     console.log(message);
     settings.telegram_api && settings.telegram_chatid &&
-        axios.get(`https://api.telegram.org/bot${settings.telegram_api}/sendmessage?chat_id=${settings.telegram_chatid}&disable_web_page_preview=1&disable_notification=true&text=${encodeURI(message)}`);
+        axios.get(`https://api.telegram.org/bot${settings.telegram_api}/sendmessage?chat_id=${settings.telegram_chatid}&disable_web_page_preview=1&disable_notification=true&text=${encodeURIComponent(message)}`);
 }
 
 
@@ -274,6 +329,10 @@ const log = message => {
             // STAKE EVERY YLDY IN WALLET
             const stakedAmount = await stakeYLDY();
             log(`Staked Amount: ${stakedAmount} YLDY`);
+
+            // ENTER NFT GAME - NOT 100% TESTED SO COMMENTED OUT. USE AT YOUR WON RISK
+            await subscribeToNFTs();
+            log(`Number of NFTs Subscribed: ${newNFTsSubscribed}`);
 
             break;
         } catch (e) {
