@@ -63,6 +63,11 @@ const connectAlgoWallet = async browser => {
     const yieldlyPage = pages[0];
 
     await yieldlyPage.waitForTimeout(5000);
+
+    // Quick check if wallet is already connected
+    const walletAlreadyConnected = await yieldlyPage.evaluate(() => !!document.querySelector('header button.MuiButton-contained')) // !! converts anything to boolean
+    if(walletAlreadyConnected) return;
+
     const [connectBtn] = await yieldlyPage.$x("//button[contains(., 'Connect Wallet')]");
     await connectBtn.click();
 
