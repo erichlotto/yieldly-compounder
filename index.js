@@ -136,22 +136,17 @@ const claimPoolRewards = async () => {
     let pages = await browser.pages();
     const yieldlyPage = pages[0];
 
-    await yieldlyPage.goto('https://app.yieldly.finance/pools');
+    await yieldlyPage.goto('https://app.yieldly.finance/pools?id=233725850');
 
     await connectAlgoWallet(browser);
-
-    await yieldlyPage.waitForTimeout(5000);
-    const [algoP] = await yieldlyPage.$x("//p[text() = 'ALGO']");
-    await algoP.click();
 
     await yieldlyPage.waitForTimeout(1000);
 
     const [claimBtn] = await yieldlyPage.$x("//button[text() = 'Claim']");
     await claimBtn.click();
 
-    await yieldlyPage.waitForTimeout(2000);
-
-    const claimAmounts = await yieldlyPage.$$eval('input[type=number]', inputs => inputs.map((input) => parseFloat(input.value)))
+    await yieldlyPage.waitForTimeout(10000);
+    const claimAmounts = await yieldlyPage.$$eval('.MuiFormControl-root input[type=text]', inputs => inputs.map((input) => parseFloat(input.value.replace(',', ''))))
 
     if (claimAmounts[0] == 0 && claimAmounts[1] == 0) {
         await browser.close();
@@ -181,16 +176,11 @@ const stakeYLDY = async () => {
 
     const yieldlyPage = pages[0];
 
-    await yieldlyPage.goto('https://app.yieldly.finance/pools');
+    await yieldlyPage.goto('https://app.yieldly.finance/pools?id=233725850');
 
     await connectAlgoWallet(browser);
 
     await yieldlyPage.waitForTimeout(5000);
-
-    const [algoP] = await yieldlyPage.$x("//p[text() = 'ALGO']");
-    await algoP.click();
-
-    await yieldlyPage.waitForTimeout(1000);
 
     await yieldlyPage.evaluate(() => {
         [...document.querySelectorAll('button')].find(element => element.textContent === 'Stake').click();
