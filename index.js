@@ -97,7 +97,7 @@ const claimNLLRewards = async () => {
     let pages = await browser.pages();
     const yieldlyPage = pages[0];
 
-    await yieldlyPage.goto('https://app.yieldly.finance/prize-games');
+    await yieldlyPage.goto('https://app.yieldly.finance/algo-prize-game');
 
     await connectAlgoWallet(browser);
 
@@ -308,7 +308,7 @@ const log = message => {
 (async () => {
     for (let i = 0; i < 10; i++) { // TRY TO RUN THE SCRIPT 10 TIMES TO BYPASS POSSIBLE NETWORK ERRORS
         try {
-            log(`YIELDLY AUTO COMPOUNDER v1.1.2${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
+            log(`YIELDLY AUTO COMPOUNDER v1.1.3${DEBUG ? " => [DEBUG] No transactions will be made!" : ""}`)
 
             // CHECK IF MYALGO WALLET IS CREATED
             await checkAlgoWallet();
